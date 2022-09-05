@@ -21,75 +21,64 @@ class Perceptron:
             else:
                 n = self.sumatoria(self.entradas[idx])
                 f_n = self.funcion_activacion(n)
-                error = self.error(self.salida_esperada[idx], f_n)
+                error = self.calcular_error(self.salida_esperada[idx], f_n)
                 print(
-                    f'X: {self.entradas[idx]} | W: {self.pesos} | f({n})={f_n} | salida_esperada: {self.salida_esperada[idx]} | Error: {error}')
+                    f'X: {self.entradas[idx]} | W: {self.pesos} | f({n})={f_n} | Delta: {self.salida_esperada[idx]} | Error: {error}')
                 if error != 0:
-                    self.pesos = self.ajusta_weight(self.entradas[idx], error)
-                    self.bias = self.ajusta_bias(error)
+                    self.pesos = self.calcular_pesos(self.entradas[idx], error)
+                    self.bias = self.calcular_bias(error)
                     print(
-                        f'W( t+{cont + 1} ): {self.pesos} | Bias( t+{cont + 1} ): {self.bias}')
+                        f'\nW( t+{cont + 1} ): {self.pesos} | Bias( t+{cont + 1} ): {self.bias}\n')
                     idx = 0
                     cont += 1
                 else:
                     idx += 1
 
-    def predecir(self, entrada: list[float]) -> int:
-        n = self.sumatoria(entrada)
+    def predecir(self, entradas: list[float]) -> int:
+        n = self.sumatoria(entradas)
         f_n = self.funcion_activacion(n)
         return f_n
 
     def sumatoria(self, entradas: list[float]) -> float:
-        n_i = []
+        suma = self.bias
         for i in range(len(self.pesos)):
-            n_i.append(float(self.pesos[i] * entradas[i]))
-        suma = (sum(n_i) + self.bias)
+            suma += (self.pesos[i] * entradas[i])
         return float(f'{suma:.4f}')
 
-    def funcion_activacion(self, n) -> int:
-        if n > 0:
-            return 1
-        else:
-            return 0
+    def funcion_activacion(self, n: float) -> int:
+        return 1 if n > 0 else 0
 
-    def ajusta_weight(self, entradas: list[float], error: int) -> list[float]:
+    def calcular_pesos(self, entradas: list[float], error: int) -> list[float]:
         w_i = []
         for i in range(len(self.pesos)):
             w = self.pesos[i] + self.tasa_aprendizaje * error * entradas[i]
             w_i.append(float(f'{w:.4f}'))
         return w_i
 
-    def ajusta_bias(self, error: int) -> float:
+    def calcular_bias(self, error: int) -> float:
         return float(f'{(self.bias + self.tasa_aprendizaje * error):.4f}')
 
-    def error(self, salida_esperada, f_n) -> int:
-        return (salida_esperada - f_n)
+    def calcular_error(self, salida_esperada: list[float], f_n: int) -> int:
+        return salida_esperada - f_n
 
-    def x_y(self):
-        xy = []
-        for i in range(len(self.pesos)):
-            if (i % 2 == 0):
-                xy.append((float(f'{(-self.bias / self.pesos[i]):.4f}'), 0))
-            else:
-                xy.append((0, float(f'{(-self.bias / self.pesos[i]):.4f}')))
-        return xy
+    def calcular_recta(self) -> tuple[list[float], list[float]]:
+        x = (float(f'{(-self.bias / self.pesos[0]):.4f}'), 0)
+        y = (0, float(f'{(-self.bias / self.pesos[1]):.4f}'))
 
-    def recta(self, xy):
-        x, y = xy
         x_min = math.floor(min(self.entradas)[0])
         x_max = math.ceil(1.5 * max(self.entradas)[0])
 
-        m = (y[1] - y[0]) / (x[1] - x[0])
-        x_ = []
-        f_x = []
+        m: float = (y[1] - y[0]) / (x[1] - x[0])
+        x_: list[float] = []
+        f_x: list[float] = []
         for i in range(x_min, x_max):
             x_.append(i)
             f_x.append(m * i - x[0] * m)
         return (x_, f_x)
 
-    def graficar(self, x, f_x):
-        x_in = []
-        y_in = []
+    def graficar(self, x: list[float], f_x: list[float]):
+        x_in: list[float] = []
+        y_in: list[float] = []
 
         for coords in self.entradas:
             a, b = coords
